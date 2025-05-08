@@ -1,0 +1,13 @@
+{
+  "uuid": "dmz.oneill@gmail.com",
+  "name": "Passwordstore Manager",
+  "description": "Access your passwords from pass (passwordstore.org) from the GNOME Shell.",
+  "version": 4,
+  "type": "module",
+  "main": "extension.js",
+  "gettext-domain": "dmz.oneill@gmail.com",
+  "shell-version": ["46", "47", "48"],
+  "settings-schema": "org.gnome.shell.extensions.passwordstoremanager",
+  "prefs": "prefs.js",
+  "stylesheet": "stylesheet.css"
+}
