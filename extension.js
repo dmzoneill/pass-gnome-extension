@@ -10,7 +10,15 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js'
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js'
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js'
 
-import { enumeratePasswordStoreEntries, formatEntryLabel, logDebug, getPassword, sanitizePassRoute, resolveParentDir, filterMatchingEntries } from './utils.js'
+import {
+  enumeratePasswordStoreEntries,
+  formatEntryLabel,
+  logDebug,
+  getPassword,
+  sanitizePassRoute,
+  resolveParentDir, 
+  filterMatchingEntries
+} from './utils.js'
 
 import {
   createHeaderBox,
@@ -53,6 +61,8 @@ const PasswordManager = GObject.registerClass(
       // Focus search after popup is shown
       this.popupMenu.connect('open-state-changed', (menu, isOpen) => {
         if (isOpen) {
+          // this timeout is destryoed/removed immediately after execution
+          //it returns GLib.SOURCE_REMOVE and doesn't need manual cleanup
           GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
             if (this._searchEntry && this._searchEntry.mapped) {
               this._searchEntry.grab_key_focus()
@@ -70,6 +80,7 @@ const PasswordManager = GObject.registerClass(
         global.stage.disconnect(this._motionHandler) // eslint-disable-line no-undef
         this._motionHandler = null
       }
+      Main.wm.removeKeybinding('show-menu-keybinding')
       super.destroy()
     }
 
@@ -128,11 +139,7 @@ const PasswordManager = GObject.registerClass(
 
       const footerBox = createFooterBox(this._searchEntry, () => {
         try {
-          const uuid = 'dmz.oneill@gmail.com'
-          Gio.Subprocess.new(
-            ['gnome-extensions', 'prefs', uuid],
-            Gio.SubprocessFlags.NONE
-          )
+          this.openPreferences()
         } catch (e) {
           logError(e, '[passwordstore] Failed to open settings') // eslint-disable-line no-undef
         }
@@ -167,19 +174,16 @@ const PasswordManager = GObject.registerClass(
 )
 
 export default class Extension {
-  constructor () {
-    this._settings = new Gio.Settings({ schema_id: 'org.gnome.shell.extensions.passwordstoremanager' })
-  }
-
   enable () {
+    this._settings = new Gio.Settings({ schema_id: 'org.gnome.shell.extensions.passwordstoremanager' })
     this.passwordManager = new PasswordManager(getPassword, this._settings)
   }
 
   disable () {
-    Main.wm.removeKeybinding('show-menu-keybinding')
     if (this.passwordManager) {
       this.passwordManager.destroy()
       this.passwordManager = null
+      this._settings = null
     }
   }
 }
