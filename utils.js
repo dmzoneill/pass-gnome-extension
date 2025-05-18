@@ -64,46 +64,6 @@ export function logDebug (message) {
   console.log(`[passwordstore] ${message}`) // eslint-disable-line no-undef
 }
 
-
-
-/**
- * Execute a command asynchronously and check the exit status.
- *
- * If given, @cancellable can be used to stop the process before it finishes.
- *
- * @param {string[]} argv - a list of string arguments
- * @param {Gio.Cancellable} [cancellable] - optional cancellable object
- * @returns {Promise<boolean>} - The process success
- */
-async function execCheck(argv, cancellable = null) {
-    let cancelId = 0;
-    const proc = new Gio.Subprocess({
-        argv,
-        flags: Gio.SubprocessFlags.NONE,
-    });
-    proc.init(cancellable);
-
-    if (cancellable instanceof Gio.Cancellable)
-        cancelId = cancellable.connect(() => proc.force_exit());
-
-    try {
-        const success = await proc.wait_check_async(null);
-
-        if (!success) {
-            const status = proc.get_exit_status();
-
-            throw new Gio.IOErrorEnum({
-                code: Gio.IOErrorEnum.FAILED,
-                message: `Command '${argv}' failed with exit code ${status}`,
-            });
-        }
-    } finally {
-        if (cancelId > 0)
-            cancellable.disconnect(cancelId);
-    }
-}
-
-
 /**
  * Execute a command asynchronously and return the output from `stdout` on
  * success or throw an error with output from `stderr` on failure.
@@ -116,54 +76,51 @@ async function execCheck(argv, cancellable = null) {
  * @param {Gio.Cancellable} [cancellable] - optional cancellable object
  * @returns {Promise<string>} - The process output
  */
-async function execCommunicate(argv, input = null, cancellable = null) {
-    let cancelId = 0;
-    let flags = Gio.SubprocessFlags.STDOUT_PIPE |
-                Gio.SubprocessFlags.STDERR_PIPE;
+async function execCommunicate (argv, input = null, cancellable = null) {
+  let cancelId = 0
+  let flags = Gio.SubprocessFlags.STDOUT_PIPE |
+                Gio.SubprocessFlags.STDERR_PIPE
 
-    if (input !== null)
-        flags |= Gio.SubprocessFlags.STDIN_PIPE;
+  if (input !== null) { flags |= Gio.SubprocessFlags.STDIN_PIPE }
 
-    const proc = new Gio.Subprocess({argv, flags});
-    proc.init(cancellable);
+  const proc = new Gio.Subprocess({ argv, flags })
+  proc.init(cancellable)
 
-    if (cancellable instanceof Gio.Cancellable)
-        cancelId = cancellable.connect(() => proc.force_exit());
+  if (cancellable instanceof Gio.Cancellable) { cancelId = cancellable.connect(() => proc.force_exit()) }
 
-    try {
-        const [stdout, stderr] = await proc.communicate_utf8_async(input, null);
+  try {
+    const [stdout, stderr] = await proc.communicate_utf8_async(input, null)
 
-        const status = proc.get_exit_status();
+    const status = proc.get_exit_status()
 
-        if (status !== 0) {
-            throw new Gio.IOErrorEnum({
-                code: Gio.IOErrorEnum.FAILED,
-                message: stderr ? stderr.trim() : `Command '${argv}' failed with exit code ${status}`,
-            });
-        }
-
-        return stdout.trim();
-    } finally {
-        if (cancelId > 0)
-            cancellable.disconnect(cancelId);
+    if (status !== 0) {
+      throw new Gio.IOErrorEnum({
+        code: Gio.IOErrorEnum.FAILED,
+        message: stderr ? stderr.trim() : `Command '${argv}' failed with exit code ${status}`
+      })
     }
+
+    return stdout.trim()
+  } finally {
+    if (cancelId > 0) { cancellable.disconnect(cancelId) }
+  }
 }
 
 // Safely fetch and copy password
-export async function getPassword(route) {
-  const sanitizedRoute = route.replace(/^\//, '').replace(/\.gpg$/, '');
-  const argv = ['pass', 'show', sanitizedRoute];
+export async function getPassword (route) {
+  const sanitizedRoute = route.replace(/^\//, '').replace(/\.gpg$/, '')
+  const argv = ['pass', 'show', sanitizedRoute]
 
   try {
-    const output = await execCommunicate(argv);
-    const password = output.split('\n')[0].trim();
+    const output = await execCommunicate(argv)
+    const password = output.split('\n')[0].trim()
 
-    St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, password);
-    logDebug(`Password copied to clipboard: ${route}`);
-    Main.notify('Password Manager', `Password for "${route}" copied to clipboard.`);
+    St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, password)
+    logDebug(`Password copied to clipboard: ${route}`)
+    Main.notify('Password Manager', `Password for "${route}" copied to clipboard.`)
   } catch (e) {
-    logDebug(`Failed to get password for ${route}: ${e.message}`);
-    Main.notify('Password Manager', `Failed to copy password for "${route}".`);
+    logDebug(`Failed to get password for ${route}: ${e.message}`)
+    Main.notify('Password Manager', `Failed to copy password for "${route}".`)
   }
 }
 export function levenshteinDistance (a, b) {

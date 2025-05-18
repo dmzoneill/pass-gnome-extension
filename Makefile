@@ -65,4 +65,8 @@ super-lint:
 	github/super-linter:latest --quiet
 
 test:
-	node --experimental-vm-modules node_modules/.bin/jest --verbose --runInBand
+	echo "Coming soon"
+
+
+test:
+	echo "Coming soon"

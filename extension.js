@@ -16,7 +16,7 @@ import {
   logDebug,
   getPassword,
   sanitizePassRoute,
-  resolveParentDir, 
+  resolveParentDir,
   filterMatchingEntries
 } from './utils.js'
 
@@ -62,7 +62,7 @@ const PasswordManager = GObject.registerClass(
       this.popupMenu.connect('open-state-changed', (menu, isOpen) => {
         if (isOpen) {
           // this timeout is destryoed/removed immediately after execution
-          //it returns GLib.SOURCE_REMOVE and doesn't need manual cleanup
+          // it returns GLib.SOURCE_REMOVE and doesn't need manual cleanup
           GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
             if (this._searchEntry && this._searchEntry.mapped) {
               this._searchEntry.grab_key_focus()
