@@ -8,8 +8,9 @@ import Clutter from 'gi://Clutter'
 import * as Main from 'resource:///org/gnome/shell/ui/main.js'
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js'
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js'
-import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
-
+import { 
+  Extension
+} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import {
   enumeratePasswordStoreEntries,
@@ -62,7 +63,7 @@ const PasswordManager = GObject.registerClass(
       // Focus search after popup is shown
       this.popupMenu.connect('open-state-changed', (menu, isOpen) => {
         if (isOpen) {
-          if(this._lastKeyBoardGrabEventTimeout) {
+          if (this._lastKeyBoardGrabEventTimeout) {
             GLib.source_remove(this._lastKeyBoardGrabEventTimeout)
           }
 
@@ -83,7 +84,7 @@ const PasswordManager = GObject.registerClass(
         global.stage.disconnect(this._motionHandler) // eslint-disable-line no-undef
         this._motionHandler = null
       }
-      if(this._lastKeyBoardGrabEventTimeout) {
+      if (this._lastKeyBoardGrabEventTimeout) {
         GLib.source_remove(this._lastKeyBoardGrabEventTimeout)
       }
       Main.wm.removeKeybinding('show-menu-keybinding')
