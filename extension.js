@@ -1,5 +1,4 @@
 import GLib from 'gi://GLib'
-import Gio from 'gi://Gio'
 import St from 'gi://St'
 import GObject from 'gi://GObject'
 import Meta from 'gi://Meta'
@@ -9,6 +8,8 @@ import Clutter from 'gi://Clutter'
 import * as Main from 'resource:///org/gnome/shell/ui/main.js'
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js'
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js'
+import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
+
 
 import {
   enumeratePasswordStoreEntries,
@@ -61,9 +62,11 @@ const PasswordManager = GObject.registerClass(
       // Focus search after popup is shown
       this.popupMenu.connect('open-state-changed', (menu, isOpen) => {
         if (isOpen) {
-          // this timeout is destryoed/removed immediately after execution
-          // it returns GLib.SOURCE_REMOVE and doesn't need manual cleanup
-          GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
+          if(this._lastKeyBoardGrabEventTimeout) {
+            GLib.source_remove(this._lastKeyBoardGrabEventTimeout)
+          }
+
+          this._lastKeyBoardGrabEventTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
             if (this._searchEntry && this._searchEntry.mapped) {
               this._searchEntry.grab_key_focus()
             } else if (this._searchEntry) {
@@ -79,6 +82,9 @@ const PasswordManager = GObject.registerClass(
       if (this._motionHandler) {
         global.stage.disconnect(this._motionHandler) // eslint-disable-line no-undef
         this._motionHandler = null
+      }
+      if(this._lastKeyBoardGrabEventTimeout) {
+        GLib.source_remove(this._lastKeyBoardGrabEventTimeout)
       }
       Main.wm.removeKeybinding('show-menu-keybinding')
       super.destroy()
@@ -173,9 +179,10 @@ const PasswordManager = GObject.registerClass(
   }
 )
 
-export default class Extension {
+export default class PassStoreManager extends Extension {
   enable () {
-    this._settings = new Gio.Settings({ schema_id: 'org.gnome.shell.extensions.passwordstoremanager' })
+    // TODO
+    // this._settings = this.getSettings();
     this.passwordManager = new PasswordManager(getPassword, this._settings)
   }
 
@@ -183,7 +190,8 @@ export default class Extension {
     if (this.passwordManager) {
       this.passwordManager.destroy()
       this.passwordManager = null
-      this._settings = null
+      // TODO
+      // this._settings = null
     }
   }
 }

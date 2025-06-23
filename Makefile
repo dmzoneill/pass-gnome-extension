@@ -38,15 +38,10 @@ clean:
 	gjs -m extension.js
 
 
-
 push: clean
 	git add -A
 	git commit --amend --no-edit 
 	git push -u origin main:main -f
-
-zip:
-	zip password-store-manager-shell-extension.zip icons/ schemas/ metadata.json *.js *.css
-
 
 debug:
 	clear; sudo journalctl /usr/bin/gnome-shell -f -o cat
@@ -67,6 +62,5 @@ super-lint:
 test:
 	echo "Coming soon"
 
-
-test:
-	echo "Coming soon"
+zip:
+	zip pass-gnome-shell-extension.zip schemas/* metadata.json *.js *.css

@@ -5,6 +5,5 @@
   "version": 4,
   "gettext-domain": "dmz.oneill@gmail.com",
   "shell-version": ["46", "47", "48"],
-  "settings-schema": "org.gnome.shell.extensions.passwordstoremanager",
   "url": "https://github.com/dmzoneill/pass-gnome-extension"
 }
